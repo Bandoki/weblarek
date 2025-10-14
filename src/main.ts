@@ -5,6 +5,7 @@ import { Catalog } from './components/Models/Catalog';
 import { Cart } from './components/Models/Cart';
 import { Buyer } from './components/Models/Buyer';
 import { LarekApi } from './components/LarekApi';
+import { API_URL } from './utils/constants';
 
 // Создаём экземпляры моделей
 const catalogModel = new Catalog();
@@ -12,7 +13,7 @@ const cartModel = new Cart();
 const buyerModel = new Buyer();
 
 // Создаём экземпляр API
-const api = new Api(import.meta.env.VITE_API_ORIGIN);
+const api = new Api(API_URL);
 const larekApi = new LarekApi(api);
 
 // Получаем товары с сервера и сохраняем их в модель
@@ -21,6 +22,9 @@ larekApi.getProducts()
     catalogModel.setItems(items);
     console.log('Полученные товары:', catalogModel.getItems());
   })
+  .catch((err) => {
+    console.error('Ошибка при получении товаров:', err);
+  });
 
 // Тестовые данные покупателя и корзины 
 buyerModel.setField('email', 'test@example.com');
