@@ -1,26 +1,33 @@
-import { IProduct } from '../../types';
+import { IProduct, IGalery, TProductPrice } from '../../types';
+import { IEvents } from '../base/Events';
 
-export class Catalog {
-  protected items: IProduct[] = [];
-  protected previewItem?: IProduct;
+export class Catalog implements IGalery {
+  protected _items: IProduct[] = [];
+  protected events: IEvents;
 
-  setItems(items: IProduct[]): void {
-    this.items = items;
+  constructor(events: IEvents) {
+    this.events = events;
   }
 
-  getItems(): IProduct[] {
-    return this.items;
+  set items(items: IProduct[]) {
+    this._items = items;
+    this.events.emit('catalog:changed');
   }
 
-  getItem(id: string): IProduct | undefined {
-    return this.items.find(item => item.id === id);
+  get items(): IProduct[] {
+    return this._items;
   }
 
-  setPreviewItem(item: IProduct): void {
-    this.previewItem = item;
+  getProduct(productId: string): IProduct {
+    const product = this._items.find(item => item.id === productId);
+    if (!product) {
+      throw new Error(`Товар с id "${productId}" не найден`);
+    }
+    return product;
   }
 
-  getPreviewItem(): IProduct | undefined {
-    return this.previewItem;
+  getProductPrice(productId: string): TProductPrice {
+    const product = this._items.find(item => item.id === productId);
+    return product ? product.price : null;
   }
 }
