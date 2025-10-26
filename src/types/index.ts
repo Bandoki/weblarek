@@ -1,7 +1,11 @@
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
-export type TPayment = 'card' | 'cash' | null;
+export type TPayment = "card" | "cash" | "";
 export type TProductCategory = 'софт-скил' | 'хард-скил' | 'другое' | 'кнопка' | 'дополнительное';
 export type TProductPrice = number | null;
+export type TOrderResponse = {
+  id: string;
+  total: number;
+};
 
 export const categoryType: Record<TProductCategory, string> = {
   'софт-скил': 'card__category_soft',
@@ -10,6 +14,7 @@ export const categoryType: Record<TProductCategory, string> = {
   'дополнительное': 'card__category_additional',
   'другое': 'card__category_other',
 };
+
 
 export interface IProduct {
   id: string;
@@ -47,6 +52,13 @@ export interface IBasket {
   removeProduct(productId: string): void;
 }
 
+export interface IOrderData {
+  address: string;
+  email: string;
+  payment: TPayment;
+  phone: string;
+}
+
 export interface IProductsResponse {
   total: number;
   items: IProduct[];
@@ -59,13 +71,23 @@ export interface IOrderResponse {//
   code?: number;
 }
 
+export interface IOrderResultApi {
+  items: IProduct[];
+  total: number;
+}
+
 
 export interface IBuyer {
   payment: TPayment;
+  address: string;
   email: string;
   phone: string;
-  address: string;
 }
+
+export interface IOrderRequest extends IBuyer {
+  total: number;
+  items: string[];
+};
 
 export interface IValidateData {
   valid: boolean;
@@ -87,9 +109,16 @@ export interface IOrder extends IBuyer {
   getIBuyer(): IBuyer;
 }
 
-export interface IApi {
-  baseUrl: string;
-  get<T>(uri: string): Promise<T>;
-  post<T>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
-}
+export interface IOrderRequest extends IBuyer {
+  total: number;
+  items: string[];
+};
 
+export interface IApi {
+  get<T extends object>(uri: string): Promise<T>;
+  post<T extends object>(
+    uri: string,
+    data: object,
+    method?: ApiPostMethods
+  ): Promise<T>;
+}

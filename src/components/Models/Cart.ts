@@ -1,46 +1,43 @@
-import { IBasket, IProduct } from '../../types';
+import { IProduct } from '../../types';
 import { IEvents } from '../base/Events';
 
-export class Cart implements IBasket {
-  protected _items: IProduct[] = [];
-  protected events: IEvents;
+//Модель корзины покупок
 
-  constructor(events: IEvents) {
-    this.events = events;
+export class Cart {
+  protected selectedProducts: IProduct[];
+
+  constructor(protected events: IEvents) {
+    this.selectedProducts = [];
   }
 
-  get items(): IProduct[] {
-    return this._items;
+  getSelectedProducts(): IProduct[] {
+    return this.selectedProducts;
   }
 
-  addProduct(item: IProduct): void {
-    this._items.push(item);
-    this.events.emit('cart:change');
+  addProduct(product: IProduct) {
+    this.selectedProducts.push(product);
+    this.events.emit('shopping-cart:changed');
   }
 
-  removeProduct(productId: string): void {
-    if (!this.alreadyInBasket(productId)) {
-      console.warn("Нельзя удалить то, чего нет в корзине!");
-      return;
-    }
-    this._items = this._items.filter(item => item.id !== productId);
-    this.events.emit('cart:change');
+  deleteProduct(id: string) {
+    this.selectedProducts = this.selectedProducts.filter(selectedProduct => selectedProduct.id !== id);
+    this.events.emit("shopping-cart:changed");
   }
 
-  alreadyInBasket(productId: string): boolean {
-    return this._items.some(item => item.id === productId);
-  }
-
-  clear(): void {
-    this._items = [];
-    this.events.emit('cart:change');
+  clearCart() {
+    this.selectedProducts = [];
+    this.events.emit("shopping-cart:changed");
   }
 
   getTotal(): number {
-    return this._items.reduce((sum, item) => sum + (item.price ?? 0), 0);
+    return this.selectedProducts.reduce((total, selectedProduct) => total + (selectedProduct.price || 0), 0);
   }
 
-  getCount(): number {
-    return this._items.length;
+  getProductsAmount(): number {
+    return this.selectedProducts.length;
+  }
+
+  checkProduct(id: string): boolean {
+    return this.selectedProducts.some(selectedProduct => selectedProduct.id === id);
   }
 }

@@ -1,13 +1,22 @@
-import { IApi, IProduct, IOrder, IProductsResponse } from '../types';
+import { Api } from "./base/Api";
+import { IApi, IOrderRequest, TOrderResponse, IOrderResultApi } from '../types/index';
 
 export class LarekApi {
-  constructor(protected api: IApi) {}
+  protected api: IApi;
 
-  getProducts(): Promise<IProduct[]> {
-    return this.api.get<IProductsResponse>('/product/').then(response => response.items);
+  constructor(api: Api) {
+    this.api = api;
   }
 
-  sendOrder(order: IOrder) {
-    return this.api.post('/order/', order);
+  // Метод для получения списка товаров с сервера.
+
+  async getProducts(): Promise<IOrderResultApi> {
+    return this.api.get('/product/');
+  }
+
+  // Метод для отправки заказа на сервер.
+
+  async postOrder(orderRequest: IOrderRequest): Promise<TOrderResponse> {
+    return this.api.post('/order/', orderRequest);
   }
 }

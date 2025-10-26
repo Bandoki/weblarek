@@ -1,32 +1,47 @@
-export class ModalView {
-  private modal: HTMLElement;
-  private modalContent: HTMLElement;
-  private closeButton: HTMLElement;
+import { ensureElement } from "../../utils/utils";
+import { Component } from "../base/Component";
+import { IEvents } from "../base/Events";
 
-  constructor() {
-    this.modal = document.querySelector('.modal') as HTMLElement;
-    this.modalContent = this.modal.querySelector('.modal__content') as HTMLElement;
-    this.closeButton = this.modal.querySelector('.modal__close') as HTMLElement;
+interface IModalView {
+  content: HTMLElement;
+}
 
-    // закрытие по кнопке
-    this.closeButton.addEventListener('click', () => this.close());
+export class ModalView extends Component<IModalView> {
+  protected closeButton: HTMLButtonElement;
+  protected contentElement: HTMLElement;
 
-    // закрытие по клику вне контейнера
-    this.modal.addEventListener('click', (e) => {
-      if (e.target === this.modal) {
+  constructor(container: HTMLElement, protected events: IEvents) {
+    super(container);
+
+    this.closeButton = ensureElement<HTMLButtonElement>('.modal__close', this.container);
+    this.contentElement = ensureElement<HTMLElement>('.modal__content', this.container);
+
+    this.closeButton.addEventListener('click', () => {
+      this.close();
+    });
+
+    this.container.addEventListener('click', (event) => {
+      if (event.target === this.container) {
         this.close();
       }
     });
   }
 
-  open(content: HTMLElement) {
-    this.modalContent.innerHTML = '';
-    this.modalContent.appendChild(content);
-    this.modal.classList.add('modal_active');
+  //сеттер для установки содержимого модального окна
+
+  set content(value: HTMLElement) {
+    this.contentElement.innerHTML = '';
+    this.contentElement.append(value);
   }
 
-  close() {
-    this.modal.classList.remove('modal_active');
-    this.modalContent.innerHTML = '';
+  open(): void {
+    this.container.classList.add('modal_active');
+    this.events.emit('modal:open');
+  }
+
+  close(): void {
+    this.container.classList.remove('modal_active');
+    this.contentElement.innerHTML = '';
+    this.events.emit('modal:close');
   }
 }

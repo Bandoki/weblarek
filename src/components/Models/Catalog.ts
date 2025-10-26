@@ -1,33 +1,37 @@
-import { IProduct, IGalery, TProductPrice } from '../../types';
 import { IEvents } from '../base/Events';
+import { IProduct } from '../../types';
 
-export class Catalog implements IGalery {
-  protected _items: IProduct[] = [];
-  protected events: IEvents;
+//Управление каталогом
 
-  constructor(events: IEvents) {
-    this.events = events;
+export class Catalog {
+  protected products: IProduct[];
+  protected selectedProduct: IProduct | null;
+
+  constructor(protected events: IEvents) {
+    this.products = [];
+    this.selectedProduct = null;
   }
 
-  set items(items: IProduct[]) {
-    this._items = items;
-    this.events.emit('catalog:changed');
+  saveProducts(products: IProduct[]) {
+    this.products = products;
+    this.events.emit('card-catalog:changed');
   }
 
-  get items(): IProduct[] {
-    return this._items;
+  getProducts(): IProduct[] {
+    return this.products;
   }
 
-  getProduct(productId: string): IProduct {
-    const product = this._items.find(item => item.id === productId);
-    if (!product) {
-      throw new Error(`Товар с id "${productId}" не найден`);
-    }
-    return product;
+  getProductByID(id: string): IProduct | undefined {
+    return this.products.find((product) => product.id === id);
   }
 
-  getProductPrice(productId: string): TProductPrice {
-    const product = this._items.find(item => item.id === productId);
-    return product ? product.price : null;
+  saveProduct(product: IProduct) {
+    this.selectedProduct = product;
+    this.events.emit("product:selected", product);
+  }
+
+  getProduct(): IProduct | null {
+    return this.selectedProduct;
   }
 }
+

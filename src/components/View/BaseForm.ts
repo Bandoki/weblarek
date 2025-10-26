@@ -1,27 +1,44 @@
 import { Component } from '../base/Component';
-import { EventEmitter } from '../base/Events';
+import { IEvents } from '../base/Events';
+import { ensureElement } from '../../utils/utils';
 
-export abstract class BaseForm<T> extends Component<T> {
-  protected _form: HTMLFormElement;
+export interface IBaseForm {
+  valid: boolean;
+  errors: string[];
+}
+
+//базовый класс для всех форм в приложении
+
+export class BaseForm extends Component<IBaseForm> {
+  
+  protected _formElement: HTMLFormElement;
   protected _submitButton: HTMLButtonElement;
+  protected _errorContainer: HTMLElement;
 
-  constructor(container: HTMLElement, protected events: EventEmitter) {
+  constructor(container: HTMLFormElement, protected events: IEvents) {
     super(container);
-    this._form = container.querySelector('form')!;
-    this._submitButton = this._form.querySelector('button[type="submit"]')!;
+    
+    this._formElement = container;
+    this._submitButton = ensureElement<HTMLButtonElement>('button[type="submit"]', this.container);
+    this._errorContainer = ensureElement<HTMLElement>('.form__errors', this.container);
 
-    this._form.addEventListener('input', (e) => {
-      const input = e.target as HTMLInputElement;
-      this.events.emit('form:change', { field: input.name, value: input.value });
-    });
+    this._submitButton.disabled = true;
+    this._submitButton.classList.add('button_disabled');
 
-    this._form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.events.emit('form:submit', {});
+    this._formElement.addEventListener('submit', (event: Event) => {
+      event.preventDefault();
+      if (!this._submitButton.disabled) {
+        this.events.emit(`${this._formElement.name}:submit`);
+      }
     });
   }
 
-  toggleSubmit(state: boolean) {
-    this._submitButton.disabled = !state;
+  set valid(value: boolean) {
+    this._submitButton.disabled = !value;
+    this._submitButton.classList.toggle('button_disabled', !value);
+  }
+
+  set errors(value: string[]) {
+    this._errorContainer.textContent = value.join(', ');
   }
 }
