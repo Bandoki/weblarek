@@ -42,6 +42,14 @@ const buyerModel = new Buyer(events);
 const currentOrderForm = new OrderForm(cloneTemplate("#order"), events);
 const currentContactsForm = new ContactsForm(cloneTemplate("#contacts"), events);
 
+//Представление успешного заказа
+
+const success = new OrderSuccessView(cloneTemplate("#success"), {
+        onClick: () => {
+          modal.close();
+        },
+      });
+
 //Загрузка данных с сервера
 
 larekApiModel
@@ -76,15 +84,9 @@ events.on("card:selected", (item: IProduct) => {
 events.on("product:selected", (item: IProduct) => {
   const isInCart = cartModel.checkProduct(item.id);
   const previewCard = new PreviewCard(cloneTemplate("#card-preview"), {
-    onButtonClick: () => {
-      if (isInCart) {
-        cartModel.deleteProduct(item.id);
-      } else if (item.price !== null) {
-        cartModel.addProduct(item);
-      }
-      modal.close();
-    },
+    onButtonClick: () => events.emit("preview:button-clicked", item),
   });
+
   modal.content = previewCard.render({
     title: item.title,
     price: item.price,
@@ -94,6 +96,16 @@ events.on("product:selected", (item: IProduct) => {
   });
   previewCard.setCanAddToBusket(isInCart, item.price);
   modal.open();
+});
+
+events.on("preview:button-clicked", (item: IProduct) => {
+  const isInCart = cartModel.checkProduct(item.id);
+  if (isInCart) {
+    cartModel.deleteProduct(item.id);
+  } else if (item.price !== null) {
+    cartModel.addProduct(item);
+  }
+  modal.close();
 });
 
 //Обновление корзины и счетчика
@@ -207,11 +219,6 @@ events.on("contacts:submit", () => {
 
   larekApiModel.postOrder(orderData)
     .then(() => {
-      const success = new OrderSuccessView(cloneTemplate("#success"), {
-        onClick: () => {
-          modal.close();
-        },
-      });
       success.total = cartModel.getTotal();
       modal.content = success.render();
 
